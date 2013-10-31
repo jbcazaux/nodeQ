@@ -1,3 +1,5 @@
+# Les promesses avec Q et nodejs
+
 Lorsque l'on commence à monter une application web qui tourne sous node, avec quelques requêtes http sur un autre serveur et une persistance dans une base mongodb on est vite pris par l'enfer des callbacks (_callback hell_).
 
 La solution la plus courante est d'utiliser les promesses. Simple... sur le papier en tout cas. Car dès que l'on dépasse le stade des 2-3 promesses à lancer l'une à la suite de l'autre on peut vite se retrouver à imbriquer des promesses les unes dans les autres, exactement comme on cherchait à ne pas faire avec les callbacks.
@@ -495,15 +497,13 @@ app.configure(function() {
 }).listen(port);
 console.log("listening on " + port);
 
-app.get('/user', function(req, res){
+app.get('/user', function(req, response){
     var login = req.param('login');
     Q().then(fetchHomePageOf(login))
         .then(function(html){
-            res.status(200).send(html);
+            response.status(200).send(html);
         })
-        .catch(function(err){
-            res.status(404).send("erreur dans la récupération de la page\n" + err);
-        })
+        .catch(sendError(response))
         .finally(function(){
             console.log('finally');
         });
@@ -522,8 +522,7 @@ function fetchHomePageOf(login){
                         deferred.resolve(homepage);
                     })
                     .catch(function(err){
-                        console.log('aie aie : ', err);
-                        deferred.reject('error while getting user\n' + err);
+                        deferred.reject('error while getting user homepage: ' + err);
                     })
                     .finally(function(){
                         db.close();
@@ -556,6 +555,13 @@ function fetchHomePage(user){
     });
     return deferred.promise;
 }
+
+function sendError(response){
+    return function(err){
+	var html = '<html><body>erreur dans la récupération de la page:<br>$err</body></html>'
+    	response.status(404).send(html.replace('$err', err));
+    }
+}
 </pre>
 _app.js_
 
@@ -563,6 +569,8 @@ Développer avec les promesses nécessite une nouvelle approche dans la construc
 
 #### Liens externes
 
-Les créateurs de la lib Q ont documenté leur librairie avec d'autres exemples et un [wiki](https://github.com/kriskowal/q/wiki "https://github.com/kriskowal/q/wiki"): [https://github.com/kriskowal/q](https://github.com/kriskowal/q "https://github.com/kriskowal/q")
+Les créateurs de la lib Q ont documenté leur librairie avec d'autres exemples et un [wiki](https://github.com/kriskowal/q/wiki "https://github.com/kriskowal/q/wiki"): [https://github.com/kriskowal/q](https://github.com/kriskowal/q "https://github.com/kriskowal/q").
+
 Ce projet github est aussi une bonne source d'informations : [https://github.com/bellbind/using-promise-q/](https://github.com/bellbind/using-promise-q/ "https://github.com/bellbind/using-promise-q/")
+
 callback hell : [http://callbackhell.com](http://callbackhell.com/ "http://callbackhell.com/")
