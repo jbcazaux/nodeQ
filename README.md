@@ -1,5 +1,3 @@
-# Les promesses avec Q et nodejs
-
 Lorsque l'on commence à monter une application web qui tourne sous node, avec quelques requêtes http sur un autre serveur et une persistance dans une base mongodb on est vite pris par l'enfer des callbacks (_callback hell_).
 
 La solution la plus courante est d'utiliser les promesses. Simple... sur le papier en tout cas. Car dès que l'on dépasse le stade des 2-3 promesses à lancer l'une à la suite de l'autre on peut vite se retrouver à imbriquer des promesses les unes dans les autres, exactement comme on cherchait à ne pas faire avec les callbacks.
@@ -360,8 +358,8 @@ function electBiggest(weights){
     if (weights.length < 1) throw new Error('no page fetched !');
     return Math.max.apply(Math, weights);
 }
-
 </pre>
+
 _promisesConcurrent.js_
 
 Dans cet exemple j'ai choisi de ne pas stopper la chaîne des promesses si la récupération d'une homepage posait problème (pas de réseau ou 404). J'ai donc utilisé Q.allSettled. Si dès qu'une erreur surgit la chaîne doit être cassée, Q.all() fera l'affaire.
