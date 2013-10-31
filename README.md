@@ -355,7 +355,7 @@ function fetchHomePage(user){
 }
 
 function electBiggest(weights){
-    if (weights.length < 1) throw new Error('no page fetched !');
+    if (weights.length &lt; 1) throw new Error('no page fetched !');
     return Math.max.apply(Math, weights);
 }
 </pre>
@@ -376,7 +376,7 @@ function fetchAllHomePages(allUsers){
 
     return Q.all(promises).spread(function(){
         var homepageWeigths = new Array();
-        for (var i = 0 ; i < arguments.length; i++){
+        for (var i = 0 ; i &lt; arguments.length; i++){
             homepageWeigths.push(arguments[i].length);
         }
         return homepageWeigths;
