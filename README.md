@@ -492,20 +492,20 @@ var port = 8123;
 //server
 var app = express();
 app.configure(function() {
-    app.use(express.logger());
     app.use(app.router);
 }).listen(port);
 console.log("listening on " + port);
 
 app.get('/user', function(req, response){
     var login = req.param('login');
+    var sendError = sendErrorTo(response);
+    var sendIt = sendResponseTo(response);
+	
     Q().then(fetchHomePageOf(login))
-        .then(function(html){
-            response.status(200).send(html);
-        })
-        .catch(sendError(response))
+        .then(sendIt)
+        .catch(sendError)
         .finally(function(){
-            console.log('finally');
+            console.log('response sent for login: ', login);
         });
 });
 
@@ -556,14 +556,22 @@ function fetchHomePage(user){
     return deferred.promise;
 }
 
-function sendError(response){
+function sendErrorTo(response){
     return function(err){
 	var html = '<html><body>erreur dans la récupération de la page:<br>$err</body></html>'
     	response.status(404).send(html.replace('$err', err));
     }
 }
+
+function sendResponseTo(response){
+    return function(page){
+	response.status(200).send(page);
+    }
+}
 </pre>
 _app.js_
+
+Pour tester : [http://localhost:8123/user?login=user1](http://localhost:8123/user?login=user2 http://localhost:8123/user?login=user2).
 
 Développer avec les promesses nécessite une nouvelle approche dans la construction du code. Il est important de correctement les utiliser pour garder un code optimisé, qui fait une remontée propre des erreurs et qui reste lisible.
 
