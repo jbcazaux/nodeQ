@@ -4,27 +4,27 @@ Lorsque l'on commence à monter une application web qui tourne sous node, avec q
 
 La solution la plus courante est d'utiliser les [promesses](https://fr.wikipedia.org/wiki/Futures_%28informatique%29). Simple... sur le papier en tout cas. Car dès que l'on dépasse le stade des 2-3 promesses à lancer l'une à la suite de l'autre on peut vite se retrouver à imbriquer des promesses les unes dans les autres, exactement comme on cherchait à ne pas faire avec les callbacks.
 
+Les promesses permettent de construire un enchaînement d'actions, synchrones ou asynchrones. Cette chaîne d'actions peut être interrompue si une des actions échoue (créé une erreur) ou se réaliser entièrement quelque soient les retours de chaque action. Il est également possible d'attendre la fin de deux actions lancées en parallèle pour en exécuter une troisième qui prendra en paramètre d'entrée les résultats des deux précédentes.
+
 L'article commence par présenter l'implémentation des promesses dans des cas simples, puis propose des solutions à des cas plus élaborés pour permettre de garder un code plus lisible et donc plus maintenable.
 
-J'ai choisi d'utiliser la librairie [Q](https://github.com/kriskowal/q) pour manipuler les promesses,  [node-mongodb-native](https://github.com/mongodb/node-mongodb-native) pour accéder à mongo, [request](https://github.com/mikeal/request) pour faire des appels http, et [express](https://github.com/visionmedia/express) pour créer un serveur http. Les sources des exemples sont disponibles sur [github/jbcazaux/nodeQ](https://github.com/jbcazaux/nodeQ "github.com/jbcazaux/nodeQ").
+J'ai choisi d'utiliser la librairie [Q](https://github.com/kriskowal/q) pour manipuler les promesses,  [node-mongodb-native](https://github.com/mongodb/node-mongodb-native) pour accéder à mongo, [request](https://github.com/mikeal/request) pour faire des appels http et enfin [express](https://github.com/visionmedia/express) pour créer un serveur http. Les sources des exemples sont disponibles sur [github.com/jbcazaux/nodeQ](https://github.com/jbcazaux/nodeQ).
 
-L'article couvre les promesses d'un point de vue pratique, je ne reviens que très peu sur l'aspect théorique. L'objectif de l'article étant de présenter les bases de Q un peu plus en détail que ce qui est fait dans la documentation officielle, parfois avare en explications et exemples de code.
-
-Les promesses permettent de construire un enchaînement d'actions, synchrones ou asynchrones. Cette chaîne d'actions peut être interrompue si une des actions échoue (créé une erreur) ou se réaliser entièrement quelque soient les retours de chaque action. Il est également possible d'attendre la fin de deux actions lancées en parallèle pour en exécuter une troisième qui prendra en paramètre d'entrée les résultats des deux précédentes.
+L'article couvre les promesses d'un point de vue pratique, je ne reviens que très peu sur l'aspect théorique. L'objectif de l'article étant de présenter les bases de Q avec plus d’explications que dans la documentation officielle, parfois avare en cela et en exemples.
 
 ## Installation
 
-Installation de nodejs (préférer le ./configure --prefix='/opt/node' pour ne pas être obligé d'installer node et ses dépendances en root): [https://github.com/joyent/node/wiki/Installation](https://github.com/joyent/node/wiki/Installation "https://github.com/joyent/node/wiki/Installation")
-Installation de mongo: [http://docs.mongodb.org/manual/installation/](http://docs.mongodb.org/manual/installation/ "http://docs.mongodb.org/manual/installation/")
+Vous trouverez les informations nécessaires à l’installation de [nodejs](http://nodejs.org/) ici : [github.com/joyent/node/wiki/Installation](https://github.com/joyent/node/wiki/Installation) (préférer le ./configure --prefix='/opt/node' pour ne pas être obligé d'installer node et ses dépendances en root) et, pour [mongo](http://www.mongodb.org/) : [docs.mongodb.org/manual/installation/](http://docs.mongodb.org/manual/installation/)
 
-Une fois nodejs et mongodb installés sur votre OS, il suffit de cloner nodeQ et faire un _npm install_ dans le répertoire du projet.
+Une fois nodejs et mongodb installés, il suffit de cloner ce projet [nodeQ](https://github.com/jbcazaux/nodeQ) et faire un _npm install_ dans le répertoire du projet.
+npm, pour Node Package Manager, est le gestionnaire de dépendances pour nodejs (vous pourrez trouver plus d’informations dans cette [présentation](http://nodejsparis.bitbucket.org/20131009/intro_npm/)).
 <pre lang="shell">
 $>git clone git@github.com:jbcazaux/nodeQ.git
 $>cd nodeQ
 $>npm install
 </pre>
 
-Voici les dépendances du projet:
+Voici les dépendances du projet listés dans le fichier [package.json](https://github.com/jbcazaux/nodeQ/blob/master/package.json) :
 <pre lang="json">
 {
     "name": "tutoQ",
@@ -40,7 +40,7 @@ Voici les dépendances du projet:
 }
 </pre>
 
-Ensuite il faut initialiser la base de données tutoDB avec 2 entrées.
+Ensuite, il faut initialiser la base de données tutoDB avec 2 entrées.
 
 <pre lang="shell">
 $>mongo tutoDB
@@ -48,7 +48,7 @@ $>mongo tutoDB
 >db.users.insert({login: 'user2', 'homepage': 'http://www.yahoo.com'})
 </pre>
 
-##  Avec les callbacks
+##  Approche naturelle avec des callbacks
 
 Dans le premier exemple on cherche à récupérer un utilisateur dans mongo puis afficher dans la console la homepage de cet utilisateur.
 
@@ -72,7 +72,7 @@ function getAnyHomePage(){
 
 getAnyHomePage();
 </pre>
-_callbacks.js_
+Fichier source : [callbacks.js](https://github.com/jbcazaux/nodeQ/blob/master/callbacks.js)
 
 Dans le 2ème exemple on découpe en plusieurs fonctions ce qui aère tout de même le code. Le problème est dans le nommage des fonctions et dans le traitement des erreurs qui a un couplage très fort avec la méthode appelante.
 
@@ -98,14 +98,14 @@ function printPage(err, response, body){
 
 getAnyHomePage();
 </pre>
-_callbacks2.js_
+Fichier source : [callbacks2.js](https://github.com/jbcazaux/nodeQ/blob/master/callbacks2.js)
 
 ##  Avec les promesses
 
-Dire que les promesses servent à éviter le _callback hell_ serait extrêmement réducteur. En effet les promesses permettent surtout de profiter du paradigme de programmation asynchrone. Là où tout était fait séquentiellement avec les callbacks, grâce aux promesses il est possible de paralléliser les traitements et donc d'être plus rapide. Nous verrons ceci plus loin dans l'article.
+Dire que les promesses servent à éviter le _callback hell_ serait extrêmement réducteur. En effet les promesses permettent surtout de profiter du paradigme de programmation asynchrone avec plus de facilité d’écriture. Là où tout était fait séquentiellement avec les callbacks, grâce aux promesses il est possible de paralléliser les traitements qui peuvent l’être et donc d'être plus optimisé. Nous verrons ceci plus loin dans l'article.
 Si la lisibilité du code vient ensuite dans la liste des atouts de cette technique, c'est tout de même une bonne introduction à la mise en place des promesses. Commençons donc par voir ce point.
 
-Node ne permet pas de créer directement des promesses. Il faut donc utiliser des librairies comme Q pour en créer. C'est assez simple et cela respecte toujours la même syntaxe:
+nodejs ne permet pas de créer directement des promesses. Il faut donc utiliser des librairies comme Q pour en créer. C'est assez simple et cela respecte toujours la même syntaxe:
 <pre lang="javascript">
 function makePromise(){
  var deferred = Q.defer();
@@ -116,7 +116,7 @@ return deferred.promise;
 }
 </pre>
 
-#### Implémentation naïve
+#### Implémentation naïve avec Q
 
 Cette première implémentation utilise les promesses mais la lisibilité n'est pas encore au rendez-vous (beaucoup de lignes inutiles et encore des callbacks). 
 
@@ -157,7 +157,7 @@ function fetchHomePage(user){
 }
 
 </pre>
-_promises1.js_
+Fichier source : [promises1.js](https://github.com/jbcazaux/nodeQ/blob/master/promises1.js)
 
 #### Avec un peu plus de classe
 
@@ -189,7 +189,7 @@ function fetchHomePage(user){
     return deferred.promise;
 }
 </pre>
-_promises2.js_
+Fichier source : [promises2.js](https://github.com/jbcazaux/nodeQ/blob/master/promises2.js)
 
 Q() crée une promesse qui ne fait rien, mais qui permet de chaîner notre premiere promesse 'connectToMongo'. Le style d'écriture des chaînes de promesses est plus homogène.
 Au lieu de créer une fonction anonyme pour les callbacks, on peut utiliser deferred.makeNodeResolver() qui fait la même chose: un reject si une erreur survient et resolve() avec en paramètre un tableau contenant les autres arguments du callback. 
@@ -220,7 +220,7 @@ function findUserByLogin(login){
 
 [...]
 </pre>
-_promisesWithParam.js_
+Fichier source : [promisesWithParam.js](https://github.com/jbcazaux/nodeQ/blob/master/promisesWithParam.js)
 
 Dans la configuration actuelle nous ne pouvions pas clore la connexion à mongo. Pour palier à çà 2 solutions, qui vont toutes les deux exposer la variable db.
 Le mot clé finally permet d'exécuter une fonction à l'issue d'une promesse, qu'elle ait été satisfaite ou non.
@@ -239,7 +239,7 @@ Q().then(connectToMongo)
 
 [...]
 </pre>
-_promisesWithVar1.js_
+Fichier source : [promisesWithVar1.js](https://github.com/jbcazaux/nodeQ/blob/master/promisesWithVar1.js)
 
 <pre lang="javascript">
 var _db;
@@ -283,7 +283,7 @@ function fetchHomePage(user){
 
 [...]                        
 </pre>
-_promisesWithVar2.js_
+Fichier source : [promisesWithVar2.js](https://github.com/jbcazaux/nodeQ/blob/master/promisesWithVar2.js)
 
 Suivant les contextes d'utilisation on peut choisir une des deux méthodes, voire les deux combinées.
 
@@ -361,10 +361,9 @@ function electBiggest(weights){
     return Math.max.apply(Math, weights);
 }
 </pre>
+Fichier source : [promisesConcurrent.js](https://github.com/jbcazaux/nodeQ/blob/master/promisesConcurrent.js)
 
-_promisesConcurrent.js_
-
-Dans cet exemple j'ai choisi de ne pas stopper la chaîne des promesses si la récupération d'une homepage posait problème (pas de réseau ou 404). J'ai donc utilisé Q.allSettled. Si dès qu'une erreur surgit la chaîne doit être cassée, Q.all() fera l'affaire.
+Dans cet exemple j'ai choisi de ne pas stopper la chaîne des promesses si la récupération d'une homepage posait problème (en cas de problème réseau ou de réponse 404 du serveur). J'ai donc utilisé Q.allSettled. Si dès qu'une erreur surgit la chaîne doit être cassée, Q.all() fera l'affaire.
 
 <pre lang="javascript">
 [...]
@@ -387,7 +386,7 @@ function fetchAllHomePages(allUsers){
 
 [...]
 </pre>
-_promisesConcurrentWithFailure.js_
+Fichier source : [promisesConcurrentWithFailure.js](https://github.com/jbcazaux/nodeQ/blob/master/promisesConcurrentWithFailure.js)
 
 #### Parallélisation des chaînes de promesses
 
@@ -471,13 +470,13 @@ function updateUserWithHomePage(user){
     }
 }
 </pre>
-_promisesConcurrentWithChainOfPromises.js_
+Fichier source : [promisesConcurrentWithChainOfPromises.js](https://github.com/jbcazaux/nodeQ/blob/master/promisesConcurrentWithChainOfPromises.js)
 
 timeout() est une méthode proposée par Q pour rejeter une promesse si celle ci n'a pas été réalisée au bout d'un temps donné.  
 
 ### Finally
 
-Voici un exemple complet avec un serveur web qui permet d'afficher la home page d'un utilisateur passé dans la requète. A des fins de lisibilité je mixe l'utilisation des callbacks et des promesses.
+Voici un exemple complet avec un serveur web qui permet d'afficher la home page d'un utilisateur passé dans la requète. A des fins de lisibilité, je mixe l'utilisation des callbacks et des promesses.
 
 <pre lang="javascript">
 //imports
@@ -569,16 +568,16 @@ function sendResponseTo(response){
     }
 }
 </pre>
-_app.js_
+Fichier source : [app.js](https://github.com/jbcazaux/nodeQ/blob/master/app.js)
 
 Pour tester : [http://localhost:8123/user?login=user1](http://localhost:8123/user?login=user2 http://localhost:8123/user?login=user2).
 
-Développer avec les promesses nécessite une nouvelle approche dans la construction du code. Il est important de correctement les utiliser pour garder un code optimisé, qui fait une remontée propre des erreurs et qui reste lisible.
+Développer avec les promesses nécessite une nouvelle approche dans la construction du code. Il est important de les utiliser correctement pour garder un code optimisé, permettant une remontée propre des erreurs tout en restant lisible.
 
 #### Liens externes
 
-Les créateurs de la lib Q ont documenté leur librairie avec d'autres exemples et un [wiki](https://github.com/kriskowal/q/wiki "https://github.com/kriskowal/q/wiki"): [https://github.com/kriskowal/q](https://github.com/kriskowal/q "https://github.com/kriskowal/q").
+Les créateurs de la librairie Q ont documenté leur librairie avec d'[autres exemples](https://github.com/kriskowal/q) et un [wiki](https://github.com/kriskowal/q/wiki).
 
-Ce projet github est aussi une bonne source d'informations : [https://github.com/bellbind/using-promise-q/](https://github.com/bellbind/using-promise-q/ "https://github.com/bellbind/using-promise-q/")
+Ce projet github est aussi une bonne source d'informations : [https://github.com/bellbind/using-promise-q/](https://github.com/bellbind/using-promise-q/)
 
-callback hell : [http://callbackhell.com](http://callbackhell.com/ "http://callbackhell.com/")
+Enfin, une référence au callback hell : [http://callbackhell.com](http://callbackhell.com/)
