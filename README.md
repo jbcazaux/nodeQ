@@ -570,7 +570,7 @@ function sendResponseTo(response){
 </pre>
 Fichier source : [app.js](https://github.com/jbcazaux/nodeQ/blob/master/app.js)
 
-Pour tester : [http://localhost:8123/user?login=user1](http://localhost:8123/user?login=user2 http://localhost:8123/user?login=user2).
+Pour tester : [http://localhost:8123/user?login=user1](http://localhost:8123/user?login=user1), [http://localhost:8123/user?login=user2](http://localhost:8123/user?login=user2).
 
 Développer avec les promesses nécessite une nouvelle approche dans la construction du code. Il est important de les utiliser correctement pour garder un code optimisé, permettant une remontée propre des erreurs tout en restant lisible.
 
