@@ -1,12 +1,12 @@
 # Les promesses avec Q et nodejs
 
-Lorsque l'on commence à monter une application web qui tourne sous node, avec quelques requêtes http sur un autre serveur et une persistance dans une base mongodb on est vite pris par l'enfer des callbacks (_callback hell_).
+Lorsque l'on commence à monter une application web qui tourne sous node, avec quelques requêtes http sur un autre serveur et une persistance dans une base mongodb on est vite pris par l'enfer des callbacks ([callback hell](http://callbackhell.com/)).
 
-La solution la plus courante est d'utiliser les promesses. Simple... sur le papier en tout cas. Car dès que l'on dépasse le stade des 2-3 promesses à lancer l'une à la suite de l'autre on peut vite se retrouver à imbriquer des promesses les unes dans les autres, exactement comme on cherchait à ne pas faire avec les callbacks.
+La solution la plus courante est d'utiliser les [promesses](https://fr.wikipedia.org/wiki/Futures_%28informatique%29). Simple... sur le papier en tout cas. Car dès que l'on dépasse le stade des 2-3 promesses à lancer l'une à la suite de l'autre on peut vite se retrouver à imbriquer des promesses les unes dans les autres, exactement comme on cherchait à ne pas faire avec les callbacks.
 
 L'article commence par présenter l'implémentation des promesses dans des cas simples, puis propose des solutions à des cas plus élaborés pour permettre de garder un code plus lisible et donc plus maintenable.
 
-J'ai choisi d'utiliser la librairie Q pour manipuler les promesses,  node-mongodb-native pour accéder à mongo, request pour faire des appels http, et express pour créer un serveur http. Les sources des exemples sont disponibles sur [github/jbcazaux/nodeQ](https://github.com/jbcazaux/nodeQ "github.com/jbcazaux/nodeQ").
+J'ai choisi d'utiliser la librairie [Q](https://github.com/kriskowal/q) pour manipuler les promesses,  [node-mongodb-native](https://github.com/mongodb/node-mongodb-native) pour accéder à mongo, [request](https://github.com/mikeal/request) pour faire des appels http, et [express](https://github.com/visionmedia/express) pour créer un serveur http. Les sources des exemples sont disponibles sur [github/jbcazaux/nodeQ](https://github.com/jbcazaux/nodeQ "github.com/jbcazaux/nodeQ").
 
 L'article couvre les promesses d'un point de vue pratique, je ne reviens que très peu sur l'aspect théorique. L'objectif de l'article étant de présenter les bases de Q un peu plus en détail que ce qui est fait dans la documentation officielle, parfois avare en explications et exemples de code.
 
